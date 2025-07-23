@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:batch="http://www.springframework.org/schema/batch"
+      xmlns:context="http://www.springframework.org/schema/context"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/batch
+         http://www.springframework.org/schema/batch/spring-batch.xsd
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/context
+         http://www.springframework.org/schema/context/spring-context.xsd">
+
+   <context:component-scan base-package="de.microtools.cs.lol.loader"/>
+   <!--  needed imports by job -->
+   <import resource="bean.xml"/>
+   <import resource="service.xml"/>
+   <import resource="validator.xml"/>
+   <import resource="tasklet.xml"/>
+   <import resource="reader.xml"/>
+   <import resource="processor.xml"/>
+   <import resource="writer.xml"/>
+   <import resource="step.xml"/>
+
+   <!-- Jobs -->
+   <!-- lolImport -->
+   <batch:job id="lolImport" incrementer="jobIncrementer" parent="lolJobLogger">
+
+      <batch:validator ref="jobParametersValidator"/>
+
+      <batch:step id="checkJobRunningImport" parent="checkJobRunningStep">
+            <batch:next on="COMPLETED" to="downloadDecider"/>
+            <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:decision id="downloadDecider" decider="downloadDeciderBean">
+          <batch:next on="FAILED" to="collectFiles" />
+          <batch:next on="COMPLETED" to="download" />
+      </batch:decision>
+
+      <batch:step id="download" parent="downloadStep">
+         <batch:next on="COMPLETED" to="collectFiles"/>
+         <batch:next on="STOPPED" to="collectFiles" />
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:step id="collectFiles" parent="collectFilesStep">
+         <batch:next on="COMPLETED" to="loginBobiksystemImport"/>
+         <batch:end on="STOPPED"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:step id="loginBobiksystemImport" parent="loginBobiksystemStep">
+         <batch:next on="COMPLETED" to="preImportSwitchImport"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:step id="preImportSwitchImport" parent="preImportSwitchStep">
+         <batch:next on="COMPLETED" to="importDb"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:step id="importDb" parent="importDbStep">
+         <batch:next on="COMPLETED" to="refreshView"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:step id="refreshView" parent="refreshViewStep">
+         <batch:next on="COMPLETED" to="tableSwitchDecider"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:decision id="tableSwitchDecider" decider="tableSwitchDeciderBean">
+          <batch:next on="COMPLETED" to="postImportSwitch" />
+          <batch:fail on="*"/>
+      </batch:decision>
+
+      <batch:step id="postImportSwitch" parent="postImportSwitchStep">
+         <batch:next on="COMPLETED" to="cleanup"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:step id="cleanup" parent="cleanupStep"/>
+
+   </batch:job>
+
+   <!-- lolCheckBusinessContact -->
+   <batch:job id="lolCheckBusinessContact" incrementer="jobIncrementer" parent="checkBusinessContactLogger">
+
+      <batch:validator ref="jobParametersValidator"/>
+
+      <batch:step id="checkJobRunningCheck" parent="checkJobRunningStep">
+         <batch:next on="COMPLETED" to="loginBobiksystemCheck"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:step id="loginBobiksystemCheck" parent="loginBobiksystemStep">
+         <batch:next on="COMPLETED" to="checkBusinessContactDecider"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:decision id="checkBusinessContactDecider" decider="checkBusinessContactDeciderBean">
+         <batch:next on="COMPLETED" to="preImportSwitchCheck" />
+         <batch:end on="FAILED"/>
+         <batch:fail on="*"/>
+      </batch:decision>
+
+      <batch:step id="preImportSwitchCheck" parent="preImportSwitchStep">
+         <batch:next on="COMPLETED" to="checkBusinessContact"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:step id="checkBusinessContact" parent="checkBusinessContactStep">
+         <batch:next on="COMPLETED" to="refreshViewCheck"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <!--  needed either by lolCheckBusinessContact as view refreshing and table switch must be performed synchronously -->
+      <batch:step id="refreshViewCheck" parent="refreshViewStep">
+         <batch:next on="COMPLETED" to="tableSwitchDeciderCheck"/>
+         <batch:fail on="*"/>
+      </batch:step>
+
+      <batch:decision id="tableSwitchDeciderCheck" decider="tableSwitchDeciderBean">
+          <batch:next on="COMPLETED" to="postImportSwitchCheck" />
+          <batch:fail on="*"/>
+      </batch:decision>
+
+      <batch:step id="postImportSwitchCheck" parent="postImportSwitchStep"/>
+
+   </batch:job>
+
+
+</beans>

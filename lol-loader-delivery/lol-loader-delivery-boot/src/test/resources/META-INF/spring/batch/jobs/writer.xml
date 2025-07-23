@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+   <!--  Writers -->
+   <!-- lolDatabaseWriter -->
+   <bean id="lolDatabaseWriter" class="org.springframework.batch.item.database.JdbcBatchItemWriter" scope="step">
+      <property name="dataSource" ref="lolDataSource" />
+      <property name="assertUpdates" value="true" />
+      <property name="itemSqlParameterSourceProvider">
+         <bean class="org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider" />
+      </property>
+      <property name="sql">
+         <value>
+            <![CDATA[
+               INSERT INTO ${lol.batch.jdbc.schema}.${lol.batch.jdbc.table.1}
+               (
+                  mappingid,
+                  stichtag,
+                  importdatum,
+                  mitgliedsnummer,
+                  mandant,
+                  buchungskreis,
+                  bobiknummer,
+                  debitornummer,
+                  name_1,
+                  name_2,
+                  name_3,
+                  name_4,
+                  plz,
+                  ort,
+                  land,
+                  inso,
+                  branchenBezeichnung,
+                  branchenCode,
+                  branchenArt,
+                  branchenLand,
+                  anzahlBelLiefer_2,
+                  anzahlBelPoolOhneLiefer_2,
+                  anzahlBelLiefer_4,
+                  anzahlBelPoolOhneLiefer_4,
+                  anzahlBelLiefer_8,
+                  anzahlBelPoolOhneLiefer_8,
+                  anzahlBelLiefer_12,
+                  anzahlBelPoolOhneLiefer_12,
+                  anzahlBelBranche,
+                  anzahlCrefosBranche,
+                  betragLiefer_2,
+                  betragLiefer_2_w,
+                  betragPoolOhneLiefer_2,
+                  betragPoolOhneLiefer_2_w,
+                  betragLiefer_4,
+                  betragLiefer_4_w,
+                  betragPoolOhneLiefer_4,
+                  betragPoolOhneLiefer_4_w,
+                  betragLiefer_8,
+                  betragLiefer_8_w,
+                  betragPoolOhneLiefer_8,
+                  betragPoolOhneLiefer_8_w,
+                  betragLiefer_12,
+                  betragLiefer_12_w,
+                  betragPoolOhneLiefer_12,
+                  betragPoolOhneLiefer_12_w,
+                  betragsvolumenOP,
+                  betragsvolumenOP_w,
+                  betragBranche,
+                  betragBranche_w,
+                  tageSollLiefer_2,
+                  tageSollPoolOhneLiefer_2,
+                  tageIstLiefer_2,
+                  tageIstPoolOhneLiefer_2,
+                  tageDiffLiefer_2,
+                  tageDiffPoolOhneLiefer_2,
+                  tageSollLiefer_4,
+                  tageSollPoolOhneLiefer_4,
+                  tageIstLiefer_4,
+                  tageIstPoolOhneLiefer_4,
+                  tageDiffLiefer_4,
+                  tageDiffPoolOhneLiefer_4,
+                  tageSollLiefer_8,
+                  tageSollPoolOhneLiefer_8,
+                  tageIstLiefer_8,
+                  tageIstPoolOhneLiefer_8,
+                  tageDiffLiefer_8,
+                  tageDiffPoolOhneLiefer_8,
+                  tageSollLiefer_12,
+                  tageSollPoolOhneLiefer_12,
+                  tageIstLiefer_12,
+                  tageIstPoolOhneLiefer_12,
+                  tageDiffLiefer_12,
+                  tageDiffPoolOhneLiefer_12,
+                  tageSollBranche,
+                  tageIstBranche,
+                  tageDiffBranche,
+                  filename
+               )
+               VALUES
+               (
+                  :mappingId,
+                  :stichtag,
+                  :importdatum,
+                  :mitgliedsnummer,
+                  :mandant,
+                  :buchungskreis,
+                  :bobiknummer,
+                  :debitornummer,
+                  :name1,
+                  :name2,
+                  :name3,
+                  :name4,
+                  :plz,
+                  :ort,
+                  :land,
+                  :inso,
+                  :branchenBezeichnung,
+                  :branchenCode,
+                  :branchenArt,
+                  :branchenLand,
+                  :anzahlBelegeLieferant2,
+                  :anzahlBelegePoolOhneLieferant2,
+                  :anzahlBelegeLieferant4,
+                  :anzahlBelegePoolOhneLieferant4,
+                  :anzahlBelegeLieferant8,
+                  :anzahlBelegePoolOhneLieferant8,
+                  :anzahlBelegeLieferant12,
+                  :anzahlBelegePoolOhneLieferant12,
+                  :anzahlBelegeBranche,
+                  :anzahlCrefosBranche,
+                  :betragLieferant2,
+                  :betragLieferant2W,
+                  :betragPoolOhneLieferant2,
+                  :betragPoolOhneLieferant2W,
+                  :betragLieferant4,
+                  :betragLieferant4W,
+                  :betragPoolOhneLieferant4,
+                  :betragPoolOhneLieferant4W,
+                  :betragLieferant8,
+                  :betragLieferant8W,
+                  :betragPoolOhneLieferant8,
+                  :betragPoolOhneLieferant8W,
+                  :betragLieferant12,
+                  :betragLieferant12W,
+                  :betragPoolOhneLieferant12,
+                  :betragPoolOhneLieferant12W,
+                  :betragsvolumenOp,
+                  :betragsvolumenOpW,
+                  :betragBranche,
+                  :betragBrancheW,
+                  :tageSollLieferant2,
+                  :tageSollPoolOhneLieferant2,
+                  :tageIstLieferant2,
+                  :tageIstPoolOhneLieferant2,
+                  :tageDiffLieferant2,
+                  :tageDiffPoolOhneLieferant2,
+                  :tageSollLieferant4,
+                  :tageSollPoolOhneLieferant4,
+                  :tageIstLieferant4,
+                  :tageIstPoolOhneLieferant4,
+                  :tageDiffLieferant4,
+                  :tageDiffPoolOhneLieferant4,
+                  :tageSollLieferant8,
+                  :tageSollPoolOhneLieferant8,
+                  :tageIstLieferant8,
+                  :tageIstPoolOhneLieferant8,
+                  :tageDiffLieferant8,
+                  :tageDiffPoolOhneLieferant8,
+                  :tageSollLieferant12,
+                  :tageSollPoolOhneLieferant12,
+                  :tageIstLieferant12,
+                  :tageIstPoolOhneLieferant12,
+                  :tageDiffLieferant12,
+                  :tageDiffPoolOhneLieferant12,
+                  :tageSollBranche,
+                  :tageIstBranche,
+                  :tageDiffBranche,
+                  :filename
+               )
+            ]]>
+         </value>
+      </property>
+   </bean>
+
+   <bean id="lolBusinessContactWriter" class="org.springframework.batch.item.database.JdbcBatchItemWriter" scope="step">
+      <property name="dataSource" ref="lolDataSource" />
+      <property name="itemSqlParameterSourceProvider" ref="paramsProvider"/>
+      <property name="sql">
+         <value>
+            <![CDATA[
+                UPDATE ${lol.batch.jdbc.schema}.${lol.batch.jdbc.table.1}
+                  SET businessContact = 1
+                  WHERE CS_ID = :id
+            ]]>
+         </value>
+      </property>
+   </bean>
+
+   <!--  ruecklieferungWriter -->
+   <bean name="ruecklieferungWriter" class="de.microtools.n5.infrastructure.batching.application.spring.writer.StaxEventItemWriter" scope="prototype">
+      <property name="overwriteOutput" value="true"/>
+      <property name="marshaller" ref="debitorMarshaller"/>
+      <property name="encoding" value="UTF-8"/>
+      <property name="writeRootTag" value="false"/>
+   </bean>
+</beans>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+   <!-- lolDataSource -->
+   <bean id="lolDataSource" class="de.microtools.cs.lol.loader.datasource.LolJobDataSource">
+      <property name="driverClassName" value="${lol.batch.jdbc.driver}" />
+      <property name="url" value="${lol.batch.jdbc.url}" />
+      <property name="username" value="${lol.batch.jdbc.user}" />
+      <property name="password" value="${lol.batch.jdbc.password}" />
+      <property name="testWhileIdle" value="${lol.batch.jdbc.testWhileIdle}"/>
+      <property name="validationQuery" value="${lol.batch.jdbc.validationQuery}"/>
+      <property name="defaultAutoCommit" value="${lol.batch.jdbc.autoCommit}"/>
+      <property name="accessToUnderlyingConnectionAllowed" value="true"/>
+   </bean>
+
+   <!-- KeepAliveDataSource for long idle processes during data copy step -->
+   <bean id="dataSource" class="de.microtools.cs.lol.loader.datasource.LolJobDataSource" primary="true">
+      <property name="driverClassName" value="${batch.jdbc.driver}" />
+      <property name="url" value="${batch.jdbc.url}" />
+      <property name="username" value="${batch.jdbc.user}" />
+      <property name="password" value="${batch.jdbc.password}" />
+      <property name="testWhileIdle" value="${batch.jdbc.testWhileIdle:false}"/>
+      <property name="testOnBorrow" value="${batch.jdbc.testOnBorrow:false}"/>
+      <property name="validationQuery" value="${batch.jdbc.validationQuery}"/>
+      <!-- default validation query time out 60 sec -->
+      <property name="validationQueryTimeout" value="${batch.jdbc.validationQuery.timeout:60}"/>
+      <!-- default fast fail validation true -->
+      <property name="fastFailValidation" value="${batch.jdbc.validationFastFail:false}"/>
+      <property name="defaultAutoCommit" value="${batch.jdbc.autoCommit}"/>
+      <!-- default initial connection size 4 -->
+      <property name="initialSize" value="${batch.jdbc.connection.initial.size:4}"/>
+      <!-- default max active connections 20 -->
+      <property name="maxTotal" value="${batch.jdbc.connection.maxTotal:20}"/>
+      <!-- default max idle connections 8 -->
+      <property name="maxIdle" value="${batch.jdbc.connection.maxIdle:8}"/>
+      <!-- default min idle connections 4 -->
+      <property name="minIdle" value="${batch.jdbc.connection.minIdle:4}"/>
+      <!-- default soft min evictable idle 4 sec -->
+      <property name="softMinEvictableIdleTimeMillis" value="${batch.jdbc.connection.evict.soft.min.time:4000}"/>
+      <!-- default time between eviction runs 5 sec. -->
+      <property name="timeBetweenEvictionRunsMillis" value="${batch.jdbc.connection.evict.time.between:5000}"/>
+      <!-- default remove abandon true -->
+      <property name="removeAbandonedOnMaintenance" value="${batch.jdbc.connection.remove.abandon:true}"/>
+      <!-- default time wait for connection 30 sec. -->
+      <property name="maxWaitMillis" value="${batch.jdbc.connection.maxWaitMillis:30000}"/>
+      <!-- default connection lifetime infinite -->
+      <property name="maxConnLifetimeMillis" value="${batch.jdbc.connection.maxLifetimeMillis:-1}"/>
+      <!-- default logging expired connections true. -->
+      <property name="logExpiredConnections" value="${batch.jdbc.connection.log.expired.connections:true}"/>
+   </bean>
+
+
+   <!-- lol2TransactionManager -->
+   <bean id="lolTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" primary="true">
+      <property name="dataSource" ref="lolDataSource" />
+   </bean>
+
+   <!-- lol2JdbcTemplate -->
+   <bean id="lolJdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" >
+      <property name="dataSource" ref="lolDataSource"/>
+   </bean>
+
+</beans>

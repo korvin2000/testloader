@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+   <bean name="dataSetService" class="de.microtools.cs.lol.loader.application.service.DataSetService">
+      <property name="dataSetDirectory">
+         <bean class="org.springframework.core.io.FileSystemResource">
+            <constructor-arg value="${lol.dataset.directory}" />
+         </bean>
+      </property>
+   </bean>
+
+</beans>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+   <!-- Tasklets -->
+   <!--  ftpDownloadTasklet -->
+   <bean id="ftpDownloadTasklet" class="de.microtools.cs.lol.loader.application.tasklet.FTPDownloadTasklet">
+      <property name="fileTransferConfig" ref="fileTransferConfig"/>
+      <property name="deliveryDirectoryPrefix" value="lol.ftp.directory."/>
+      <property name="fileRegEx" value="${lol.ftp.file.regex}"/>
+      <property name="deleteDownloaded" value="${lol.ftp.delete.downloaded}"/>
+      <property name="maxDownloadCount" value="${lol.batch.process.max.file}"/>
+      <property name="localDirectory">
+         <bean class="org.springframework.core.io.UrlResource">
+            <constructor-arg value="${lol.batch.work.dir}" />
+         </bean>
+      </property>
+   </bean>
+
+   <!--  fileCollectorTasklet -->
+   <bean id="fileCollectorTasklet" class="de.microtools.cs.lol.loader.application.tasklet.FileCollectorTasklet">
+      <property name="fileRegEx" value="${lol.batch.file.regex}"/>
+      <property name="maxCollectCount" value="${lol.batch.process.max.file}"/>
+      <property name="workDir">
+         <bean class="org.springframework.core.io.UrlResource">
+            <constructor-arg value="${lol.batch.work.dir}" />
+         </bean>
+      </property>
+      <property name="reportDateAndValidatorReader" ref="reportDateAndValidatorReader"/>
+   </bean>
+
+    <!--  CleanupTasklet -->
+   <bean id="cleanupTasklet" class="de.microtools.cs.lol.loader.application.tasklet.CleanupTasklet">
+      <property name="workDir">
+         <bean class="org.springframework.core.io.UrlResource">
+            <constructor-arg value="${lol.batch.work.dir}" />
+         </bean>
+      </property>
+   </bean>
+
+   <!--  tableSwitchTasklet -->
+   <bean id="tableSwitchTasklet" class="de.microtools.cs.lol.loader.application.tasklet.TableSwitchTasklet" scope="step">
+      <property name="importTable_1" value="${lol.batch.jdbc.table.1}"/>
+      <property name="importTable_2" value="${lol.batch.jdbc.table.2}"/>
+      <property name="tableSynonym" value="${lol.batch.jdbc.table.synonym}"/>
+      <property name="importView_1" value="${lol.batch.jdbc.view.1}"/>
+      <property name="importView_2" value="${lol.batch.jdbc.view.2}"/>
+      <property name="viewSynonym" value="${lol.batch.jdbc.view.synonym}"/>
+      <property name="schema" value="${lol.batch.jdbc.schema}"/>
+      <property name="jdbcTemplate" ref="lolJdbcTemplate"/>
+      <property name="lookupSql">
+         <value>
+             <![CDATA[
+               SELECT TABLE_NAME, TABLE_OWNER, OWNER FROM ALL_SYNONYMS WHERE SYNONYM_NAME = ?
+             ]]>
+         </value>
+      </property>
+      <property name="truncateTableSql">
+         <value>
+             <![CDATA[
+               TRUNCATE TABLE %s REUSE STORAGE
+             ]]>
+         </value>
+      </property>
+      <property name="copyTableSql">
+         <value>
+             <!-- Only the entries within the last two years will be kept -->
+             <![CDATA[
+               INSERT /*+ APPEND PARALLEL(%s, 12) NOLOGGING */ INTO %s (SELECT /*+ PARALLEL(%s, 12) */ * FROM %s WHERE STICHTAG >= (SYSTIMESTAMP - INTERVAL '2' YEAR))
+             ]]>
+         </value>
+      </property>
+      <property name="deleteTableSql">
+         <value>
+             <![CDATA[
+               #{jobExecutionContext['importMode'] != null and jobExecutionContext['importMode'] ? 'DELETE FROM %s WHERE (1,FILENAME) IN (%s)' : ''}
+             ]]>
+         </value>
+      </property>
+      <property name="switchSql">
+         <value>
+             <![CDATA[
+               CREATE OR REPLACE SYNONYM %s FOR %s
+             ]]>
+         </value>
+      </property>
+   </bean>
+
+   <!--  checkJobRunningTasklet -->
+   <bean id="checkJobRunningTasklet" class="de.microtools.n5.infrastructure.batching.application.spring.tasklet.CheckJobRunningTasklet">
+      <property name="checkJobs">
+         <list>
+            <value>lolImport</value>
+            <value>lolCheckBusinessContact</value>
+         </list>
+      </property>
+   </bean>
+
+   <!--  crefologinTasklet -->
+   <bean id="crefoLoginTasklet" class="de.microtools.cs.lol.loader.application.tasklet.CrefoLoginTasklet" scope="step">
+      <property name="loginServiceWrapper" ref="loginServiceWrapper"/>
+   </bean>
+
+    <!--  refreshViewTasklet -->
+   <bean id="refreshViewTasklet" class="de.microtools.cs.lol.loader.application.tasklet.RefreshViewTasklet" scope="step">
+      <property name="jdbcTemplate" ref="lolJdbcTemplate"/>
+      <property name="refreshSql">
+         <value>
+            <![CDATA[
+               BEGIN DBMS_MVIEW.REFRESH('%s','?',NULL,TRUE,FALSE,1,12,0,FALSE,FALSE,FALSE); END;
+             ]]>
+         </value>
+      </property>
+   </bean>
+
+</beans>

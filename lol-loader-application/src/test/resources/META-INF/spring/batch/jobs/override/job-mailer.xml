@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- Message mappers -->
+   <bean id="messageMapper1" class="de.microtools.cs.lol.loader.application.logger.LolBatchMailBuilder">
+      <property name="batchSummarySql">
+         <value>
+              <![CDATA[
+                SELECT
+                     FILENAME AS ITEMSOURCE,
+                     COUNT(*) AS ITEMCOUNT
+                  FROM ${lol.batch.jdbc.schema}.${lol.batch.jdbc.table.synonym}
+                  GROUP BY FILENAME
+             ]]>
+         </value>
+      </property>
+      <property name="batchSummaryRowMapper" ref="summaryRowMapper"/>
+      <property name="traceAttachment" value="${batch.statusmail.1.traceattachment}"/>
+      <property name="zipAttachment" value="${batch.statusmail.1.traceattachment.zip}"/>
+      <property name="mailSender" ref="mailSender"/>
+      <property name="appJdbcTemplate" ref="appJdbcTemplate"/>
+      <property name="mailSubject" value="${batch.statusmail.1.subject}"/>
+      <property name="active" value="${batch.statusmail.1.active}"/>
+      <property name="infoLevel" value="${batch.statusmail.1.infolevel}"/>
+      <property name="infoCategory" value="${batch.statusmail.1.infocategory}"/>
+      <property name="velocityEngine" ref="velocityEngine"/>
+      <property name="mailTemplate" value="META-INF/spring/batch/templates/lol-job-mail-template.vm"/>
+   </bean>
+
+</beans>

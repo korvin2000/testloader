@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:util="http://www.springframework.org/schema/util"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/util
+         http://www.springframework.org/schema/util/spring-util.xsd">
+
+   <!--   FileTransferConfig -->
+   <bean id="fileTransferConfig" class="de.microtools.cs.lol.loader.application.ftp.FileTransferConfig">
+      <property name="host" value="${lol.ftp.host}" />
+      <property name="port" value="${lol.ftp.port}" />
+      <property name="username" value="${lol.ftp.user}" />
+      <property name="password" value="${lol.ftp.password}" />
+      <property name="clientMode" value="0" />
+      <property name="fileType" value="2" />
+      <property name="bufferSize" value="100000" />
+      <!-- SFTP Only Part -->
+      <property name="useSftp" value="${lol.ftp.useSftp}" />
+      <property name="strictHostKeyChecking" value="${lol.ftp.strictHostKeyChecking}" />
+      <property name="knownHosts" value="${lol.ftp.knownHosts}" />
+      <property name="identityFullPath" value="${lol.ftp.identityFullPath}" />
+      <!-- SFTP Only Part (optional) -->
+      <property name="serverHostKey" value="${lol.ftp.serverHostKey}" />
+      <property name="kex" value="${lol.ftp.kex}" />
+      <property name="cipherS2C" value="${lol.ftp.cipherS2C}" />
+      <property name="cipherC2S" value="${lol.ftp.cipherC2S}" />
+      <property name="macS2C" value="${lol.ftp.macS2C}" />
+      <property name="macC2S" value="${lol.ftp.macC2S}" />
+   </bean>
+
+   <!-- Deciders -->
+   <!--  downloadDeciderBean -->
+   <bean id="downloadDeciderBean" class="de.microtools.cs.lol.loader.application.decider.DownloadDecider"/>
+   <bean id="tableSwitchDeciderBean" class="de.microtools.cs.lol.loader.application.decider.TableSwitchDecider"/>
+   <bean id="checkBusinessContactDeciderBean" class="de.microtools.cs.lol.loader.application.decider.CheckBusinessContactDeciderBean">
+      <property name="mappingServiceWrapper" ref="mappingServiceWrapper"/>
+      <property name="jdbcTemplate" ref="lolJdbcTemplate"/>
+      <property name="countSql">
+         <value>
+             <![CDATA[
+               SELECT COUNT(*) "COUNT_ALL", COUNT(DISTINCT(NVL(CREFONUMMER,'n/a')||NVL(MAPPINGID, -1))) "COUNT_BC" FROM ${lol.batch.jdbc.schema}.${lol.batch.jdbc.table.synonym} WHERE BUSINESSCONTACT = 0 AND (1,MAPPINGID) IN (%s)
+             ]]>
+         </value>
+      </property>
+   </bean>
+
+   <!--  Marshallers -->
+   <!--  debitorMarshaller -->
+   <bean id="debitorMarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+      <property name="classesToBeBound">
+         <list>
+            <value>de.microtools.cs.lol.loader.application.domain.LolRuecklieferungErw</value>
+         </list>
+      </property>
+      <property name="marshallerProperties">
+        <map>
+            <entry>
+               <key>
+                  <util:constant static-field="javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT"/>
+               </key>
+               <value type="java.lang.Boolean">true</value>
+            </entry>
+            <entry>
+               <key>
+                  <util:constant static-field="javax.xml.bind.Marshaller.JAXB_ENCODING"/>
+               </key>
+               <value type="java.lang.String">UTF-8</value>
+            </entry>
+         </map>
+      </property>
+   </bean>
+
+   <!--  lolReportingDateMarshaller -->
+   <bean id="reportDateAndValidatorMarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
+      <property name="classesToBeBound">
+         <list>
+            <value>de.microtools.cs.lol.loader.application.domain.LolRuecklieferungErwDatum</value>
+         </list>
+      </property>
+      <property name="schema" value="classpath:/xsd/LOLRuecklieferungSchemaErw-v1.1.xsd"/>
+      <property name="validationEventHandler" ref="xmlValidationHandler"/>
+      <property name="marshallerProperties">
+         <map>
+            <entry>
+               <key>
+                  <util:constant static-field="javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT"/>
+               </key>
+               <value type="java.lang.Boolean">true</value>
+            </entry>
+            <entry>
+               <key>
+                  <util:constant static-field="javax.xml.bind.Marshaller.JAXB_ENCODING"/>
+               </key>
+               <value type="java.lang.String">UTF-8</value>
+            </entry>
+         </map>
+      </property>
+   </bean>
+
+   <!--  lolDataRowMapper -->
+   <bean id="lolDataRowMapper" class="de.microtools.cs.lol.loader.application.reader.LolDataRowMapper"/>
+
+   <!--  paramsProvider -->
+   <bean id="paramsProvider" class="org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider" />
+
+</beans>

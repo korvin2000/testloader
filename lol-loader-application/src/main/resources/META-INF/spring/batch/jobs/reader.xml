@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+   <!-- Readers -->
+   <!-- multi resource item reader -->
+   <bean id="lolMultiResourceReader" class="de.microtools.cs.lol.loader.application.reader.LolMultiResourceItemReader" scope="step">
+      <property name="resources" value="#{jobExecutionContext['incomingFiles']}"/>
+      <property name="stepExecution" value="#{stepExecution}"/>
+      <property name="delegate" ref="debitorReader" />
+      <property name="strict" value="true"/>
+   </bean>
+
+   <!--  debitorReader -->
+   <bean name="debitorReader" class="org.springframework.batch.item.xml.StaxEventItemReader">
+      <property name="fragmentRootElementNames" value="lolDebitor"/>
+      <property name="unmarshaller" ref="debitorMarshaller"/>
+      <property name="strict" value="true"/>
+   </bean>
+
+   <!--  reportDateAndValidatorReader -->
+   <bean name="reportDateAndValidatorReader" class="org.springframework.batch.item.xml.StaxEventItemReader">
+      <property name="fragmentRootElementNames" value="lolRuecklieferungErw"/>
+      <property name="unmarshaller" ref="reportDateAndValidatorMarshaller"/>
+      <property name="strict" value="true"/>
+   </bean>
+
+   <!--  ruecklieferungReader -->
+   <bean name="ruecklieferungReader" class="org.springframework.batch.item.xml.StaxEventItemReader" scope="prototype">
+      <property name="fragmentRootElementNames" value="lolRuecklieferungErw"/>
+      <property name="unmarshaller" ref="debitorMarshaller"/>
+      <property name="strict" value="true"/>
+   </bean>
+
+    <!-- lolDatabaseReader item reader -->
+   <bean id="lolDatabaseReader" class="de.microtools.cs.lol.loader.application.reader.LolDatabaseReader" scope="step">
+      <property name="dataSource" ref="lolDataSource"/>
+      <property name="driverSupportsAbsolute" value="true"/>
+      <property name="fetchSize" value="1000"/>
+      <property name="ignoreWarnings" value="false"/>
+      <property name="rowMapper" ref="lolDataRowMapper"/>
+      <property name="verifyCursorPosition" value="true"/>
+      <property name="stepExecution" value="#{stepExecution}"/>
+      <property name="sql">
+         <value>
+          <![CDATA[
+                SELECT
+                     CS_ID,
+                     MAPPINGID,
+                     CREFONUMMER,
+                     NAME_1,
+                     NAME_2,
+                     NAME_3,
+                     NAME_4,
+                     PLZ,
+                     ORT,
+                     LAND
+                  FROM ${lol.batch.jdbc.schema}.#{jobExecutionContext['importTable']}
+                  WHERE BUSINESSCONTACT = 0 AND (1,MAPPINGID) IN (%s)
+             ]]>
+         </value>
+      </property>
+   </bean>
+
+</beans>

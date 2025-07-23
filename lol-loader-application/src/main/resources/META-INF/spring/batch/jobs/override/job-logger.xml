@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:batch="http://www.springframework.org/schema/batch"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/batch
+         http://www.springframework.org/schema/batch/spring-batch.xsd
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--  jobLogger -->
+   <batch:job id="lolJobLogger" parent="jobLogger" abstract="true">
+      <batch:listeners>
+         <!--  afterJob callback will be executed in reverse order on listener -->
+         <batch:listener ref="batchLogMailer2"/>
+         <batch:listener ref="batchLogMailer1"/>
+         <batch:listener ref="batchJobLogger" />
+      </batch:listeners>
+   </batch:job>
+
+   <batch:job id="checkBusinessContactLogger" parent="jobLogger" abstract="true">
+      <batch:listeners>
+         <batch:listener ref="batchLogMailer1"/>
+         <batch:listener ref="batchJobLogger" />
+      </batch:listeners>
+   </batch:job>
+
+</beans>

@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>de.microtools.cs.lol.loader</groupId>
+    <artifactId>lol-loader-delivery-parent</artifactId>
+    <version>1.6.16-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>lol-loader-delivery-boot</artifactId>
+  <name>lol-loader-delivery-boot</name>
+  <packaging>jar</packaging>
+  <version>1.6.16-SNAPSHOT</version>
+
+  <properties>
+    <app.name>lolimporter</app.name>
+    <finalName>lolimporter-delivery-boot</finalName>
+    <delivery.work.dir>${project.basedir}/target/delivery-work-dir/${project.name}-${project.version}</delivery.work.dir>
+    <deploy.file>${project.basedir}/target/${app.name}.tar.gz</deploy.file>
+    <maven.antrun.plugin.version>1.8</maven.antrun.plugin.version>
+    <build.helper.maven.plugin.version>3.0.0</build.helper.maven.plugin.version>
+  </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.codehaus.janino</groupId>
+                <artifactId>janino</artifactId>
+                <version>3.1.6</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>de.microtools.cs.lol.loader</groupId>
+      <artifactId>lol-loader-application</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>de.microtools.n5.infrastructure.batching</groupId>
+      <artifactId>batching-starter-spring-boot</artifactId>
+    </dependency>
+    <!--  Testing -->
+    <dependency>
+      <groupId>de.microtools.n5.infrastructure.batching</groupId>
+      <artifactId>batching-starter-spring-test-deps</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+
+    <!-- Logging Start -->
+    <dependency>
+      <artifactId>slf4j-api</artifactId>
+      <groupId>org.slf4j</groupId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.janino</groupId>
+      <artifactId>janino</artifactId>
+    </dependency>
+    <!-- Logging END -->
+
+  </dependencies>
+  <build>
+    <finalName>${finalName}</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-boot.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>${start-class}</mainClass>
+          <excludeDevtools>false</excludeDevtools>
+          <layout>ZIP</layout>
+          <fork>true</fork>
+          <excludeGroupIds>
+            org.jboss.spec.javax.interceptors,
+            org.jboss.spec.javax.annotation,
+            org.jboss.spec.javax.servlet,
+            org.jboss.resteasy,
+            javax.enterprise,
+            javax.inject,
+            org.projectlombok
+          </excludeGroupIds>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>${maven.antrun.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <phase>clean</phase>
+            <configuration>
+              <tasks>
+                <delete dir="${basedir}/delivery" failonerror="false" />
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>create-delivery</id>
+            <phase>package</phase>
+            <configuration>
+              <target>
+                <!-- create delivery structure -->
+                <mkdir dir="${delivery.work.dir}/bin" />
+                <mkdir dir="${delivery.work.dir}/etc" />
+                <mkdir dir="${delivery.work.dir}/lib" />
+                <mkdir dir="${delivery.work.dir}/logs" />
+                <mkdir dir="${delivery.work.dir}/doc" />
+                <mkdir dir="${delivery.work.dir}/sftp" />
+
+                <!-- copy to bin -->
+                <copy failonerror="true" overwrite="true" todir="${delivery.work.dir}/bin" verbose="true">
+                  <fileset dir="${basedir}/src/main/resources/targz/bin">
+                    <include name="*.sh" />
+                  </fileset>
+                </copy>
+                <!-- copy to etc
+                <copy failonerror="true" overwrite="true" tofile="${delivery.work.dir}/etc/${app.name}.conf" verbose="true">
+                    <fileset dir="${basedir}/src/main/resources/targz/etc">
+                        <include name="${conf.file}" />
+                    </fileset>
+                </copy>
+                -->
+                <!-- copy to doc -->
+                <copy failonerror="true" overwrite="true" todir="${delivery.work.dir}/doc" verbose="true">
+                  <fileset dir="${basedir}/src/main/resources/targz/doc">
+                    <include name="README.txt" />
+                  </fileset>
+                </copy>
+                <!-- copy to lib -->
+                <copy failonerror="true" overwrite="true" todir="${delivery.work.dir}/lib" verbose="true">
+                  <fileset dir="${project.build.directory}">
+                    <include name="${finalName}.jar" />
+                  </fileset>
+                </copy>
+                <!-- copy to lib
+                <copy failonerror="true" overwrite="true" todir="${delivery.work.dir}/sftp" verbose="true">
+                  <fileset dir="${basedir}/src/main/resources/targz/sftp">
+                    <include name="id_rsa" />
+                  </fileset>
+                </copy> -->
+                <!-- fixcrlf -->
+                <fixcrlf eol="unix" includes="**/*.sh **/*.properties **/*.conf **/*.xml **/*.sql" srcdir="${delivery.work.dir}" />
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+        <executions>
+          <execution>
+            <id>replace-cicd-resources</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${delivery.work.dir}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/src/main/resources/targz</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+              <filters>
+                <filter>${project.basedir}/src/main/resources/properties/master.properties</filter>
+              </filters>
+            </configuration>
+          </execution>
+          <execution>
+            <id>replace-cicd-resources-for-runtime</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.basedir}/target/runtime</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/src/main/resources/etc</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+              <filters>
+                <filter>${project.basedir}/src/main/resources/properties/local.properties</filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-filtering</artifactId>
+            <version>1.3</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>${maven.antrun.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>create-tar-gz</id>
+            <phase>package</phase>
+            <configuration>
+              <target>
+                <tar compression="gzip" destfile="${deploy.file}" longfile="gnu">
+                  <tarfileset dir="${delivery.work.dir}/.." dirmode="775" filemode="775">
+                    <include name="**/**" />
+                  </tarfileset>
+                </tar>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>${build.helper.maven.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${deploy.file}</file>
+                  <type>tar.gz</type>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

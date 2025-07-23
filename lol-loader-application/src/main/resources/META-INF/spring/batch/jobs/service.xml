@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+   <!-- services -->
+   <!--  mappingServiceWrapper -->
+   <bean id="mappingServiceWrapper" class="de.microtools.cs.lol.loader.integration.MappingServiceWrapper">
+      <property name="mappingService" ref="mappingService"/>
+   </bean>
+
+   <!--  loginServiceWrapper -->
+   <bean id="loginServiceWrapper" class="de.microtools.cs.lol.loader.integration.LoginServiceWrapper">
+      <property name="loginService" ref="loginService"/>
+      <property name="userPrefix" value="lol.import.user."/>
+      <property name="passwordPrefix" value="lol.import.password."/>
+   </bean>
+
+   <!-- businessContactServiceWrapper -->
+   <bean id="businessContactServiceWrapper" class="de.microtools.cs.lol.loader.integration.BusinessContactServiceWrapper">
+      <property name="businessContactService" ref="businessContactService"/>
+   </bean>
+
+   <!-- mappingService, loginService -->
+   <beans profile="default,prod,!mockservices">
+
+      <bean id="mappingService" class="de.microtools.cs.lol.mapping.api.LolMappingImpl"/>
+
+      <bean id="loginService" class="de.microtools.n5.core.grapa.client.LoginApi">
+         <constructor-arg name="appId" value="${app.id.cslogin}"/>
+      </bean>
+
+      <bean id="businessContactService" class="de.microtools.n5.core.party.api.BusinessContactAPI"/>
+
+   </beans>
+
+   <!-- mappingServiceMock, loginServiceMock -->
+   <beans profile="test,dev,mockservices">
+
+      <bean id="mappingService" class="de.microtools.cs.lol.loader.integration.LolMappingMock"/>
+
+      <bean id="loginService" class="de.microtools.cs.lol.loader.integration.LoginApiMock">
+         <constructor-arg name="appId" value="${app.id.cslogin}"/>
+      </bean>
+
+      <bean id="businessContactService" class="de.microtools.cs.lol.loader.integration.BusinessContactApiMock"/>
+   </beans>
+
+</beans>

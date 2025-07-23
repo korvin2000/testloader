@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+   <!--  Processors -->
+   <!-- lolCompositeItemProcessor -->
+   <bean id="lolCompositeItemProcessor" class="org.springframework.batch.item.support.CompositeItemProcessor">
+       <property name="delegates">
+           <list>
+               <ref bean="lolMappingProcessor"/>
+               <ref bean="lolValidatingProcessor"/>
+           </list>
+       </property>
+   </bean>
+
+   <!-- lolMappingProcessor -->
+   <bean id="lolMappingProcessor" class="de.microtools.cs.lol.loader.application.processor.LolMappingProcessor" scope="step">
+      <property name="stepExecution" value="#{stepExecution}"/>
+      <property name="mappingServiceWrapper" ref="mappingServiceWrapper"/>
+   </bean>
+
+   <!-- lolValidatingProcessor -->
+   <bean id="lolValidatingProcessor" class="org.springframework.batch.item.validator.ValidatingItemProcessor">
+      <property name="validator" ref="lolImportDataValidator" />
+      <property name="filter" value="true"/>
+   </bean>
+
+    <!-- lolBusinessContactProcessor -->
+   <bean id="lolBusinessContactProcessor" class="de.microtools.cs.lol.loader.application.processor.LolBusinessContactProcessor" scope="step">
+      <property name="stepExecution" value="#{stepExecution}"/>
+      <property name="businessContactServiceWrapper" ref="businessContactServiceWrapper"/>
+   </bean>
+
+</beans>

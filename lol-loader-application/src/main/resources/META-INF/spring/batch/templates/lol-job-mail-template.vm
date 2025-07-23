@@ -1,0 +1,71 @@
+#parse( "META-INF/spring/batch/templates/job-mail-macros.vm" )
+<html>
+#header()
+<body>
+Sehr geehrte Damen und Herren,</br></br>
+hiermit möchten wir Sie darüber informieren, dass #letter( $infoLevel, $jobIdentifier, $jobStatus)
+
+#if($infoLevel != "ALL" && $executionInfos && $executionInfos.size() > 0)
+<h4>Zusammenfassung der #executionInfosHeading($infoLevel, $infoCategory):</h4>
+<div style="overflow-x:auto;">
+ <table>
+  <tr>
+    <th>Datum</th>
+    <th>Typ</th>
+    <th>Art</th>
+    <th>Resource</th>
+    <th>Meldung</th>
+  </tr>
+#foreach ($info in $executionInfos)
+<tr bgcolor="#backgroundColor($!{info.level})">
+    <td>$!{dateFormatter.format(${info.timestamp})}</td>
+    <td>#infoLevelColumnHeading($!{info.level})</td>
+    <td>#categoryColumnHeading($!{info.category})</td>
+    <td>$!{info.source}</td>
+    <td>$!{info.message}</td>
+</tr>
+#end
+</table>
+</div>
+#end
+#if( $loadSummaries && $loadSummaries.size() > 0)
+</br>
+<h4>Zuammenfassung der importierten Entitäten:</h4>
+<div style="overflow-x:auto;">
+ <table>
+  <tr>
+    <th>Resource</th>
+    <th>Anzahl</th>
+  </tr>
+#foreach ($summary in $loadSummaries)
+<tr>
+    <td>$!{summary.itemSource}</td>
+    <td>$!{summary.itemCount}</td>
+</tr>
+#end
+#if( $loadWholeSummary)
+<tr>
+    <td><b>Gesamtanzahl:</b></td>
+    <td>$!loadWholeSummary</td>
+</tr>
+#end
+</table>
+</div>
+#end
+#if( $jobDuration && $infoCategory != "BUSINESS")
+</br>
+<b>Gesamtlaufzeit:</b> $!{jobDuration}
+#end
+#if( $attachment )
+</br></br>
+Jobablauf Anhang <b>${attachment}</b> entnehmen.
+#end
+</br>
+<p>
+Mfg</br>
+Ihr LOL-Batching Team
+</p>
+</body>
+</html>
+
+

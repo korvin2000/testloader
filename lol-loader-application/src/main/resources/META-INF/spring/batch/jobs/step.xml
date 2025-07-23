@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:batch="http://www.springframework.org/schema/batch"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/batch
+         http://www.springframework.org/schema/batch/spring-batch.xsd
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+   <batch:step id="checkJobRunningStep" parent="stepLogger">
+      <batch:tasklet ref="checkJobRunningTasklet"/>
+   </batch:step>
+
+   <batch:step id="downloadStep" parent="stepLogger">
+      <batch:tasklet ref="ftpDownloadTasklet"/>
+   </batch:step>
+
+   <batch:step id="collectFilesStep" parent="stepLogger">
+      <batch:tasklet ref="fileCollectorTasklet"/>
+   </batch:step>
+
+    <batch:step id="loginBobiksystemStep" parent="stepLogger">
+      <batch:tasklet ref="crefoLoginTasklet"/>
+      <batch:listeners>
+         <batch:listener ref="loginServiceWrapper"/>
+         <!-- need to be redefined as listeners will be completely overwritten -->
+         <batch:listener ref="batchStepLogger" />
+      </batch:listeners>
+   </batch:step>
+
+   <batch:step id="preImportSwitchStep" parent="stepLogger">
+      <batch:tasklet ref="tableSwitchTasklet"/>
+   </batch:step>
+
+   <batch:step id="importDbStep" parent="stepLogger">
+        <batch:tasklet transaction-manager="lolTransactionManager">
+            <batch:chunk reader="lolMultiResourceReader" processor="lolCompositeItemProcessor" writer="lolDatabaseWriter" commit-interval="1000" />
+         </batch:tasklet>
+         <batch:listeners>
+            <batch:listener ref="mappingServiceWrapper"/>
+            <!-- need to be redefined as listeners will be completely overwritten -->
+            <batch:listener ref="batchStepLogger" />
+         </batch:listeners>
+   </batch:step>
+
+   <batch:step id="cleanupStep" parent="stepLogger">
+      <batch:tasklet ref="cleanupTasklet"/>
+   </batch:step>
+
+   <batch:step id="postImportSwitchStep" parent="stepLogger">
+      <batch:tasklet ref="tableSwitchTasklet"/>
+   </batch:step>
+
+    <batch:step id="refreshViewStep" parent="stepLogger">
+        <batch:tasklet ref="refreshViewTasklet">
+            <batch:transaction-attributes isolation="DEFAULT"
+                                          propagation="SUPPORTS"
+                                          timeout="1500"/>
+        </batch:tasklet>
+    </batch:step>
+
+   <batch:step id="checkBusinessContactStep" parent="stepLogger">
+     <batch:tasklet transaction-manager="lolTransactionManager">
+         <batch:chunk reader="lolDatabaseReader" processor="lolBusinessContactProcessor" writer="lolBusinessContactWriter" commit-interval="1000" />
+      </batch:tasklet>
+      <batch:listeners>
+         <batch:listener ref="businessContactServiceWrapper"/>
+         <batch:listener ref="mappingServiceWrapper"/>
+         <!-- need to be redefined as listeners will be completely overwritten -->
+         <batch:listener ref="batchStepLogger" />
+      </batch:listeners>
+   </batch:step>
+
+  </beans>

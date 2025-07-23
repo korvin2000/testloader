@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+   <!--  lolImportDataValidator -->
+   <bean id="lolImportDataValidator" class="de.microtools.cs.lol.loader.application.validator.LolImportDataValidator" scope="step">
+      <property name="stepExecution" value="#{stepExecution}"/>
+      <property name="validator">
+        <bean id="orderValidator" class="org.springmodules.validation.valang.ValangValidator">
+            <property name="valang">
+                <value>
+                    <![CDATA[
+                        { mappingId : ? is not null and (? > -1): 'mapping id is not resolved or invalid.'}
+                        { stichtag : ? is not null : 'Stichtag is not resolved.'}
+                        { importdatum : ? is not null : 'importDate is not resolved.'}
+                        { filename : ? is not null : 'filename is not resolved.'}
+                    ]]>
+                </value>
+            </property>
+        </bean>
+      </property>
+   </bean>
+
+   <!-- xmlValidationHandler -->
+   <bean name="xmlValidationHandler" class="de.microtools.cs.lol.loader.application.validator.LolValidationHandler"/>
+
+   <!-- jobParametersValidator -->
+   <bean id="jobParametersValidator" class="org.springframework.batch.core.job.DefaultJobParametersValidator">
+        <property name="requiredKeys" value="qualifier" />
+    </bean>
+
+</beans>

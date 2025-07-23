@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+         http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="fakeFtpServer" class="org.mockftpserver.fake.FakeFtpServer">
+         <!-- lol.ftp.port could not be set over sessionFactory, so using fix port number here. The client side value is application.properties#lol.ftp.port -->
+        <property name="serverControlPort" value="12658"/>
+        <property name="userAccounts">
+            <list>
+                <bean class="org.mockftpserver.fake.UserAccount">
+                    <property name="username" value="${lol.ftp.user}"/>
+                    <property name="password" value="${lol.ftp.password}"/>
+                    <property name="homeDirectory" value="/"/>
+                </bean>
+            </list>
+        </property>
+        <property name="fileSystem">
+            <bean class="org.mockftpserver.fake.filesystem.UnixFakeFileSystem">
+                <property name="createParentDirectoriesAutomatically" value="false"/>
+                <property name="entries">
+                    <list>
+                        <bean class="org.mockftpserver.fake.filesystem.DirectoryEntry">
+                            <property name="path" value="/"/>
+                            <property name="permissionsFromString" value="rwxrwxrwx"/>
+                        </bean>
+                    </list>
+                </property>
+            </bean>
+        </property>
+    </bean>
+
+</beans>
