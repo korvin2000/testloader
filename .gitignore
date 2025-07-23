@@ -1,0 +1,23 @@
+syntax: glob
+.classpath
+.project
+.checkstyle
+svn.ignore
+*.log
+*.orig
+.DS_Store
+**/target/**
+**/target
+**/.svn
+**/.settings
+**/src/generated
+release.properties
+**/webapp/META-INF/MANIFEST.MF
+**/webapp/META-INF/**/pom.properties
+**/webapp/META-INF/**/pom.xml
+nb-configuration.xml
+nbactions.xml
+**/*.iml
+.idea
+**/.metadata
+/lol-loader-application/logs/
